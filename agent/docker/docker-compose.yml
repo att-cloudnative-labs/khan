@@ -1,0 +1,17 @@
+version: '3.0'
+services:
+  app:
+    container_name: ${IMAGE_NAME}_container
+    build:
+      context: ../
+      args:
+        - bitbucket_id=${MY_ENV_USER}
+        - bitbucket_token=${MY_ENV_TOKEN}
+        - env_preset=${MY_ENV_PRESET}
+    image: ${IMAGE_NAME}
+    # for local development, no need certs
+    environment:
+      - SERVER_SSL_ENABLED=false
+    ports:
+      - 8080:8080
+      - 8443:8443
