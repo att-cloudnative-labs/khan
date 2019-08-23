@@ -1,6 +1,6 @@
 package appmappings
 
-import(
+import (
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,9 +17,9 @@ import(
 // App contains fields for tags for an app
 type App struct {
 	Namespace string `json:"namespace"`
-	AppName string `json:"appName"`
-	PodName string `json:"podName"`
-	NodeIp string `json:"nodeIP"`
+	AppName   string `json:"appName"`
+	PodName   string `json:"podName"`
+	NodeIp    string `json:"nodeIP"`
 }
 
 // PodCache IP to App cache
@@ -49,14 +49,14 @@ func (p *PodCache) PutCache(podIP string, app App) {
 }
 
 // AppmappingController initializes and updates appmapping cache
-type AppmappingController struct{
-	podLister listers.PodLister
+type AppmappingController struct {
+	podLister  listers.PodLister
 	podsSynced cache.InformerSynced
 }
 
 func NewController(podInformer informers.PodInformer) (*AppmappingController, error) {
 	return &AppmappingController{
-		podLister: podInformer.Lister(),
+		podLister:  podInformer.Lister(),
 		podsSynced: podInformer.Informer().HasSynced,
 	}, nil
 }
@@ -70,9 +70,9 @@ func (c *AppmappingController) Start(stopCh <-chan struct{}) {
 	ticker := time.NewTicker(time.Duration(30) * time.Second)
 	for {
 		select {
-		case <- ticker.C:
+		case <-ticker.C:
 			go c.BuildCache()
-		case <- stopCh:
+		case <-stopCh:
 			ticker.Stop()
 			return
 		}
@@ -88,9 +88,9 @@ func (c *AppmappingController) BuildCache() {
 
 		podCache.internal[pod.Status.PodIP] = App{
 			Namespace: pod.Namespace,
-			AppName: pod.GetLabels()["app"],
-			PodName: pod.Name,
-			NodeIp: pod.Status.HostIP,
+			AppName:   pod.GetLabels()["app"],
+			PodName:   pod.Name,
+			NodeIp:    pod.Status.HostIP,
 		}
 
 	}

@@ -1,9 +1,0 @@
-#!/usr/bin/env groovy
-@Library('cicd-common@master')
-import com.att.eg.cicd.*
-
-env.environment = 'dev-int'
-env.platform = 'go'
-
-def workflow = new WorkflowFactory().getWorkflow(env.platform, this)
-workflow.create()

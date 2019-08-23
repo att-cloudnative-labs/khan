@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 
-	"egbitbucket.dtvops.net/com/agent/cmd/webapp/config"
-	"egbitbucket.dtvops.net/com/agent/cmd/webapp/metrics"
-	"egbitbucket.dtvops.net/com/agent/cmd/webapp/routes"
-	"egbitbucket.dtvops.net/com/agent/internal/agent/appmapping"
-	"egbitbucket.dtvops.net/com/agent/internal/agent/conntrack"
-	"egbitbucket.dtvops.net/com/agent/internal/platform/netclient"
+	"github.com/cloud-native-labs/khan/agent/cmd/webapp/config"
+	"github.com/cloud-native-labs/khan/agent/cmd/webapp/metrics"
+	"github.com/cloud-native-labs/khan/agent/cmd/webapp/routes"
+	"github.com/cloud-native-labs/khan/agent/internal/agent/appmapping"
+	"github.com/cloud-native-labs/khan/agent/internal/agent/conntrack"
+	"github.com/cloud-native-labs/khan/agent/internal/platform/netclient"
 
 	"egbitbucket.dtvops.net/com/goatt"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"egbitbucket.dtvops.net/com/agent/internal/platform/netclient"
+	"github.com/cloud-native-labs/khan/agent/internal/platform/netclient"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"

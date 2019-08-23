@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"egbitbucket.dtvops.net/com/agent/internal/agent"
+	"github.com/cloud-native-labs/khan/agent/internal/agent"
 
 	"egbitbucket.dtvops.net/com/goatt"
 )

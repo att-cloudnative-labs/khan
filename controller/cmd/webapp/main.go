@@ -2,24 +2,20 @@ package main
 
 import (
 	"fmt"
+	"github.com/cloud-native-labs/khan/controller/cmd/webapp/routes"
+	"github.com/go-chi/chi"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"egbitbucket.dtvops.net/com/controller/cmd/webapp/config"
-	"egbitbucket.dtvops.net/com/controller/cmd/webapp/metrics"
-	"egbitbucket.dtvops.net/com/controller/cmd/webapp/routes"
-	"egbitbucket.dtvops.net/com/controller/internal/controller/appmappings"
-	"egbitbucket.dtvops.net/com/controller/internal/platform/netclient"
-	"egbitbucket.dtvops.net/com/goatt"
+	"github.com/cloud-native-labs/khan/controller/cmd/webapp/config"
+	"github.com/cloud-native-labs/khan/controller/internal/controller/appmappings"
+	"github.com/cloud-native-labs/khan/controller/internal/platform/netclient"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-)
-
-var (
-	goattVersion = "0.0.0"
 )
 
 func main() {
@@ -29,13 +25,9 @@ func main() {
 	kubeconfig := config.Registry.GetString("KUBECONFIG")
 	netclient.Preset = config.Registry.GetString("PRESET")
 
-	goattService := goatt.NewGoattService(port)
-	enableProfiling := config.Registry.GetBool("ENABLE_PROFILING")
-	goattService.Httpservice.EnableProfiling(enableProfiling)
-	// add to /info endpoint
-	goattService.Httpservice.ExposeInfo("goattVersion", goattVersion)
-	metrics.Set(goattService.Metrics)
-	routes.Set(goattService.Httpservice)
+	r := chi.NewRouter()
+
+	routes.Set(r)
 
 	// appmapping
 	cfg, err := clientcmd.BuildConfigFromFlags(apiserver, kubeconfig)
@@ -46,7 +38,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("error creating controller: %s", err.Error()))
 	}
-	
+
 	stopCh := setupSignalHandler()
 	informerFactory := informers.NewSharedInformerFactory(stdClient, time.Second*30)
 
@@ -59,7 +51,9 @@ func main() {
 	go controller.Start(stopCh)
 
 	fmt.Printf("Starting application on port %s\n", port)
-	err = goattService.Httpservice.Start()
+
+	err = http.ListenAndServe(port, r)
+
 	if err != nil {
 		panic(err)
 	}

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"egbitbucket.dtvops.net/com/agent/internal/agent/appmapping"
+	"github.com/cloud-native-labs/khan/agent/internal/agent/appmapping"
 )
 
 type ConntrackEntry struct {
@@ -38,15 +38,15 @@ type ConntrackEntry struct {
 	ResDstPod string `json:"res_dst_pod"`
 	ResDstIp  string `json:"res_dst_ip"`
 
-	State    string `json:"state"`
+	State     string `json:"state"`
 	Transport string `json:"transport"`
-	RepState string `json:"rep_state"`
-	CtFlag   string `json:"ct_flag"`
+	RepState  string `json:"rep_state"`
+	CtFlag    string `json:"ct_flag"`
 }
 
 type ConntrackCount struct {
-	Node string `json:"node"`
-	Count string `json:"count"`
+	Node       string         `json:"node"`
+	Count      string         `json:"count"`
 	Connection ConntrackEntry `json:"connection"`
 }
 

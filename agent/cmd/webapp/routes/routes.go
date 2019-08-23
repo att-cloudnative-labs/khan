@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"egbitbucket.dtvops.net/com/agent/internal/agent/appmapping"
-	"egbitbucket.dtvops.net/com/agent/internal/agent/conntrack"
+	"github.com/cloud-native-labs/khan/agent/internal/agent/appmapping"
+	"github.com/cloud-native-labs/khan/agent/internal/agent/conntrack"
 
 	"egbitbucket.dtvops.net/com/goatt/pkg/service"
 )

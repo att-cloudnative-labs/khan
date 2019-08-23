@@ -4,19 +4,19 @@ import (
 	"context"
 	"egbitbucket.dtvops.net/com/goatt/pkg/yawl"
 	"egbitbucket.dtvops.net/com/goatt/pkg/yawl/log"
-	"egbitbucket.dtvops.net/com/agent/internal/platform/netclient"
 	"encoding/json"
 	"fmt"
+	"github.com/cloud-native-labs/khan/agent/internal/platform/netclient"
 	"net/http"
 )
 
 // Here is where you define your business logic and your data structure.
 
 var (
-	statusDebug = yawl.NewStatus("DEBUG_MESSAGE", 700, "Example of a debug message.")
+	statusDebug                = yawl.NewStatus("DEBUG_MESSAGE", 700, "Example of a debug message.")
 	statusErrorExampleFunction = yawl.NewStatus("EXAMPLE_FUNCTION_ERROR", 4001, "The example function failed.")
 )
-	
+
 // HelloWorld is an example struct
 type HelloWorld struct {
 	Hello string `json:"Hello"`
