@@ -12,7 +12,6 @@ import (
 
 	"github.com/cloud-native-labs/khan/controller/cmd/webapp/config"
 	"github.com/cloud-native-labs/khan/controller/internal/controller/appmappings"
-	"github.com/cloud-native-labs/khan/controller/internal/platform/netclient"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -23,7 +22,6 @@ func main() {
 	port := config.Registry.GetString("SERVER_PORT")
 	apiserver := config.Registry.GetString("APISERVER")
 	kubeconfig := config.Registry.GetString("KUBECONFIG")
-	netclient.Preset = config.Registry.GetString("PRESET")
 
 	r := chi.NewRouter()
 

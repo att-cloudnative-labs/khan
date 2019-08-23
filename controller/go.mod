@@ -3,7 +3,6 @@ module github.com/cloud-native-labs/khan/controller
 go 1.12
 
 require (
-	egbitbucket.dtvops.net/com/goatt v0.21.1
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/googleapis/gnostic v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect

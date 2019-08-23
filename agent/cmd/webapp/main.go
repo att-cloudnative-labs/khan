@@ -9,11 +9,6 @@ import (
 	"github.com/cloud-native-labs/khan/agent/cmd/webapp/routes"
 	"github.com/cloud-native-labs/khan/agent/internal/agent/appmapping"
 	"github.com/cloud-native-labs/khan/agent/internal/agent/conntrack"
-	"github.com/cloud-native-labs/khan/agent/internal/platform/netclient"
-)
-
-var (
-	goattVersion = "0.0.0"
 )
 
 func main() {
@@ -28,8 +23,6 @@ func main() {
 	connUpdatePeriod := config.Registry.GetInt("CONN_UPDATE_PERIOD")
 	appmappingUrl := config.Registry.GetString("APPMAPPING_URL")
 	nodeName := config.Registry.GetString("NODE_NAME")
-
-	netclient.Preset = config.Registry.GetString("PRESET")
 
 	r := chi.NewRouter()
 
