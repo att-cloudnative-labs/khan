@@ -2,6 +2,8 @@ egbitbucket.dtvops.net/com/goatt v0.13.0 h1:EdY1fTPdvbq943lfB9YK1WBE9TWTgerJvCPe
 egbitbucket.dtvops.net/com/goatt v0.13.0/go.mod h1:URMyAHPyEIJHtakFavS9Vgwkkup06HkGa7zTdjSpYMU=
 egbitbucket.dtvops.net/com/goatt v0.18.3 h1:0rImGYK+49s2vabqcvWRQa6l4pS5DpX8ZNKdickt/WU=
 egbitbucket.dtvops.net/com/goatt v0.18.3/go.mod h1:NYWWKMTUlLIupPy/ySlDCcDgC61vgh9GbpFPJUmAB0k=
+egbitbucket.dtvops.net/com/goatt v0.21.1 h1:CibdzLNOhRIcuC9R71pej4UhhlYGAmAfFvdNMT3tdUg=
+egbitbucket.dtvops.net/com/goatt v0.21.1/go.mod h1:NYWWKMTUlLIupPy/ySlDCcDgC61vgh9GbpFPJUmAB0k=
 egbitbucket.dtvops.net/com/khan-agent v0.0.0-20190709010302-018c29a28905 h1:Ljz2i10LZSJQxq9hU1i/J3RnOcRu3Js6Ayvb1yE01oY=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=

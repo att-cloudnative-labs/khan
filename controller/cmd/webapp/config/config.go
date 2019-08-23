@@ -11,6 +11,8 @@ var Registry *viper.Viper
 func Set() {
 	v := viper.New()
 
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
 	v.AddConfigPath(".")
 	v.AddConfigPath("../..")
 

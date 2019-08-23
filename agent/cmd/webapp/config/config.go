@@ -1,9 +1,6 @@
 package config
 
 import (
-	"fmt"
-
-	"egbitbucket.dtvops.net/com/goatt/pkg/config"
 	"github.com/spf13/viper"
 )
 
@@ -12,14 +9,14 @@ var Registry *viper.Viper
 
 // Set the configs
 func Set() {
-	var err error
-	config.AddConfigPath(".")
-	config.AddConfigPath("../..")
+	v := viper.New()
 
-	err = config.SetConfig(true)
-	if err != nil {
-		err = fmt.Errorf("failed to set goatt config: %v", err)
-		panic(err)
-	}
-	Registry = config.Viper
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+	v.AddConfigPath(".")
+	v.AddConfigPath("../..")
+
+	v.AutomaticEnv()
+
+	Registry = v
 }

@@ -2,15 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-chi/chi"
+	"net/http"
 
 	"github.com/cloud-native-labs/khan/agent/cmd/webapp/config"
-	"github.com/cloud-native-labs/khan/agent/cmd/webapp/metrics"
 	"github.com/cloud-native-labs/khan/agent/cmd/webapp/routes"
 	"github.com/cloud-native-labs/khan/agent/internal/agent/appmapping"
 	"github.com/cloud-native-labs/khan/agent/internal/agent/conntrack"
 	"github.com/cloud-native-labs/khan/agent/internal/platform/netclient"
-
-	"egbitbucket.dtvops.net/com/goatt"
 )
 
 var (
@@ -32,13 +31,9 @@ func main() {
 
 	netclient.Preset = config.Registry.GetString("PRESET")
 
-	goattService := goatt.NewGoattService(port)
-	enableProfiling := config.Registry.GetBool("ENABLE_PROFILING")
-	goattService.Httpservice.EnableProfiling(enableProfiling)
-	// add to /info endpoint
-	goattService.Httpservice.ExposeInfo("goattVersion", goattVersion)
-	metrics.Set(goattService.Metrics)
-	routes.Set(goattService.Httpservice)
+	r := chi.NewRouter()
+
+	routes.Set(r)
 
 	// start appmapping updater
 	appmapper := appmapping.NewAppmappingController(nodeName, appmappingUrl, 20)
@@ -49,7 +44,9 @@ func main() {
 	conntrack.StartUpdateTimer(nodeName, conntrackScript, connUpdatePeriod, stopCh)
 
 	fmt.Printf("Starting application on port %s\n", port)
-	err := goattService.Httpservice.Start()
+
+	err := http.ListenAndServe(port, r)
+
 	if err != nil {
 		panic(err)
 	}
