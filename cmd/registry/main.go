@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cloud-native-labs/khan/cmd/registry/routes"
-	"github.com/cloud-native-labs/khan/cmd/registry/config"
-	"github.com/cloud-native-labs/khan/internal/mappings"
+	"github.com/att-cloudnative-labs/khan/cmd/registry/config"
+	"github.com/att-cloudnative-labs/khan/cmd/registry/routes"
+	"github.com/att-cloudnative-labs/khan/internal/mappings"
 
 	"github.com/go-chi/chi"
 
@@ -42,7 +42,7 @@ func main() {
 	stopCh := setupSignalHandler()
 	informerFactory := informers.NewSharedInformerFactory(stdClient, time.Second*30)
 
-	controller, err := appmappings.NewController(informerFactory.Core().V1().Pods())
+	controller, err := mappings.NewController(informerFactory.Core().V1().Pods())
 	if err != nil {
 		panic(fmt.Errorf("error creating controller: %s", err.Error()))
 	}

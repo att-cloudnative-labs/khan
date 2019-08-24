@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloud-native-labs/khan/pkg/mappings"
+	"github.com/att-cloudnative-labs/khan/pkg/mappings"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	informers "k8s.io/client-go/informers/core/v1"
@@ -18,7 +18,7 @@ import (
 // TargetCache IP to App cache
 type TargetCache struct {
 	sync.RWMutex
-	internal map[string]App
+	internal map[string]mappings.Target
 }
 
 // NewTargetCache create new TargetCache
@@ -28,7 +28,7 @@ func NewTargetCache() *TargetCache {
 	}
 }
 
-var targetCache = TargetCache()
+var targetCache = NewTargetCache()
 
 // GetCache get the current TargetCache
 func (p *TargetCache) GetCache() map[string]mappings.Target {
@@ -85,11 +85,11 @@ func (c *TargetCacheController) BuildCache() {
 	}
 	for _, pod := range pods {
 
-		podCache.internal[pod.Status.PodIP] = App{
+		targetCache.internal[pod.Status.PodIP] = mappings.Target{
 			Namespace: pod.Namespace,
 			AppName:   pod.GetLabels()["app"],
 			PodName:   pod.Name,
-			NodeIp:    pod.Status.HostIP,
+			NodeIP:    pod.Status.HostIP,
 		}
 
 	}
@@ -103,7 +103,7 @@ func RequestHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error parsing request for NodeMapping: %s", err.Error())
 		return
 	}
-	err = json.NewEncoder(w).Encode(podCache.GetCache())
+	err = json.NewEncoder(w).Encode(targetCache.GetCache())
 	if err != nil {
 		fmt.Printf("Error encoding PodCache: %s", err.Error())
 	}

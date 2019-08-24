@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloud-native-labs/khan/agent/internal/agent/appmapping"
+	"github.com/att-cloudnative-labs/khan/agent/internal/agent/appmapping"
 )
 
 type ConntrackEntry struct {

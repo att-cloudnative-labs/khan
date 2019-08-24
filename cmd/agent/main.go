@@ -6,10 +6,10 @@ import (
 
 	"github.com/go-chi/chi"
 
-	"github.com/cloud-native-labs/khan/cmd/agent/routes"
-	"github.com/cloud-native-labs/khan/cmd/agent/config"
-	"github.com/cloud-native-labs/khan/internal/mappings"
-	"github.com/cloud-native-labs/khan/internal/conntrack"
+	"github.com/att-cloudnative-labs/khan/cmd/agent/config"
+	"github.com/att-cloudnative-labs/khan/cmd/agent/routes"
+	"github.com/att-cloudnative-labs/khan/internal/conntrack"
+	"github.com/att-cloudnative-labs/khan/internal/mappings"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	port := config.Registry.GetString("SERVER_PORT")
 	conntrackScript := config.Registry.GetString("CONNTRACK_SCRIPT")
 	connUpdatePeriod := config.Registry.GetInt("CONN_UPDATE_PERIOD")
-	appmappingUrl := config.Registry.GetString("APPMAPPING_URL")
+	mappingURL := config.Registry.GetString("MAPPING_URL")
 	nodeName := config.Registry.GetString("NODE_NAME")
 
 	r := chi.NewRouter()

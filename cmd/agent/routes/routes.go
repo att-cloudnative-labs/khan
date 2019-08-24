@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"github.com/cloud-native-labs/khan/internal/conntrack"
-	"github.com/cloud-native-labs/khan/internal/mappings"
+	"github.com/att-cloudnative-labs/khan/internal/conntrack"
+	"github.com/att-cloudnative-labs/khan/internal/mappings"
 	"github.com/go-chi/chi"
 )
 
