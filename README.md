@@ -8,4 +8,3 @@ Khan captures connection tracking snapshots on Pods, and Nodes and exposes them 
 The use case for this application is for tracking down pods/services that are leaking connections or finding an unknown client that is overloading a server.
 
 This application is composed of a 'controller' that runs as a deployment. The controller is mainly an API for the node agents to retrieve mappings of IP-to-pod for IPs found in the conntrack table. The 'agent' runs as a daemonset on each node and captures the conntrack table and converts it to a set of prometheus metrics.
-
