@@ -11,9 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/att-cloudnative-labs/khan/agent/internal/agent/appmapping"
+	"github.com/att-cloudnative-labs/khan/internal/mappings"
 )
 
+// ConntrackEntry conntrack entry
 type ConntrackEntry struct {
 	ReqSrcNs  string `json:"req_src_ns"`
 	ReqSrcApp string `json:"req_src_app"`
@@ -93,25 +94,25 @@ func UpdateConntrackEntries(nodeName string, conntrackScript string) {
 	for i := 0; i < len(entries); i++ {
 		entries[i].Node = nodeName
 		// request source
-		reqSrc := appmapping.Get(entries[i].Connection.ReqSrcIp)
+		reqSrc := mappings.Get(entries[i].Connection.ReqSrcIp)
 		entries[i].Connection.ReqSrcNs = reqSrc.Namespace
 		entries[i].Connection.ReqSrcApp = reqSrc.AppName
 		entries[i].Connection.ReqSrcPod = reqSrc.PodName
 
 		// request destination
-		reqDst := appmapping.Get(entries[i].Connection.ReqDstIp)
+		reqDst := mappings.Get(entries[i].Connection.ReqDstIp)
 		entries[i].Connection.ReqDstNs = reqDst.Namespace
 		entries[i].Connection.ReqDstApp = reqDst.AppName
 		entries[i].Connection.ReqDstPod = reqDst.PodName
 
 		// response source
-		resSrc := appmapping.Get(entries[i].Connection.ResSrcIp)
+		resSrc := mappings.Get(entries[i].Connection.ResSrcIp)
 		entries[i].Connection.ResSrcNs = resSrc.Namespace
 		entries[i].Connection.ResSrcApp = resSrc.AppName
 		entries[i].Connection.ResSrcPod = resSrc.PodName
 
 		// response destination
-		resDst := appmapping.Get(entries[i].Connection.ResDstIp)
+		resDst := mappings.Get(entries[i].Connection.ResDstIp)
 		entries[i].Connection.ResDstNs = resDst.Namespace
 		entries[i].Connection.ResDstApp = resDst.AppName
 		entries[i].Connection.ResDstPod = resDst.PodName

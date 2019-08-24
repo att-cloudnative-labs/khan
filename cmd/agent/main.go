@@ -30,7 +30,7 @@ func main() {
 	routes.Set(r)
 
 	// start appmapping updater
-	mapper := mappings.NewLocalTargetCacheController(nodeName, appmappingUrl, 20)
+	mapper := mappings.NewLocalTargetCacheController(nodeName, mappingURL, 20)
 
 	// start conntrack updater
 	stopCh := make(chan struct{})
