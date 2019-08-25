@@ -10,7 +10,7 @@ import (
 
 	"github.com/att-cloudnative-labs/khan/cmd/registry/config"
 	"github.com/att-cloudnative-labs/khan/cmd/registry/routes"
-	"github.com/att-cloudnative-labs/khan/internal/mappings"
+	"github.com/att-cloudnative-labs/khan/internal/registry"
 
 	"github.com/go-chi/chi"
 
@@ -29,7 +29,6 @@ func main() {
 
 	routes.Set(r)
 
-	// appmapping
 	cfg, err := clientcmd.BuildConfigFromFlags(apiserver, kubeconfig)
 	if err != nil {
 		panic(fmt.Errorf("error creating controller: %s", err.Error()))
@@ -42,10 +41,8 @@ func main() {
 	stopCh := setupSignalHandler()
 	informerFactory := informers.NewSharedInformerFactory(stdClient, time.Second*30)
 
-	controller, err := mappings.NewController(informerFactory.Core().V1().Pods())
-	if err != nil {
-		panic(fmt.Errorf("error creating controller: %s", err.Error()))
-	}
+	controller := registry.NewController(informerFactory.Core().V1().Pods(),
+		informerFactory.Core().V1().Services(), informerFactory.Core().V1().Nodes())
 
 	go informerFactory.Start(stopCh)
 	go controller.Start(stopCh)

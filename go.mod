@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/go-chi/chi v4.0.2+incompatible
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/googleapis/gnostic v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/spf13/viper v1.3.1
