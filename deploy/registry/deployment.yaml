@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: khan-system
+  name: khan-registry
+spec:
+  selector:
+    matchLabels:
+      app: khan-registry
+  template:
+    metadata:
+      labels:
+        app: khan-registry
+    spec:
+      serviceAccount: khan-registry
+      containers:
+      - name: controller
+        image: your-registry.com/khan-system/registry:1.0.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: "1"
+          requests:
+            memory: 1Gi
+            cpu: 500m
+        env:
+        - name: SERVER_SSL_ENABLED
+          value: "false"
+        - name: SERVER_PORT
+          value: ":8080"
+        ports:
+        - containerPort: 8080
+          protocol: TCP

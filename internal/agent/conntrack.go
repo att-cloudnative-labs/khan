@@ -3,6 +3,7 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"net/http"
 	"os"
@@ -14,7 +15,7 @@ import (
 	"github.com/golang/glog"
 )
 
-// ConntrackEntry conntrack entry
+// ConntrackEntry object representing each conntrack table row
 type ConntrackEntry struct {
 	ReqSrcType string `json:"req_src_type"`
 	ReqSrcNs   string `json:"req_src_ns"`
@@ -49,6 +50,7 @@ type ConntrackEntry struct {
 	CtFlag    string `json:"ct_flag"`
 }
 
+// ConntrackCount count of conntrack entries with same tags
 type ConntrackCount struct {
 	Node       string         `json:"node"`
 	Count      string         `json:"count"`
@@ -57,25 +59,53 @@ type ConntrackCount struct {
 
 var currentConntrack []ConntrackCount
 
-func StartController(nodeName string, conntrackDir string, periodSeconds int, stop chan struct{}) {
-	ticker := time.NewTicker(time.Duration(periodSeconds) * time.Second)
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				go func() {
-					if err := UpdateConntrackEntries(nodeName, conntrackDir); err != nil {
-						glog.Error(err.Error())
-					}
-				}()
-			case <-stop:
-				ticker.Stop()
-				return
-			}
-		}
-	}()
+// ConntrackUpdater controller for updating conntrack counts (cache)
+type ConntrackUpdater struct {
+	nodeName        string
+	conntrackScript string
+	periodSeconds   int
+	stopCh          chan bool
+	wg              *sync.WaitGroup
 }
 
+// NewConntrackUpdater new ConntrackUpdater
+func NewConntrackUpdater(nodeName string, conntrackScript string, periodSeconds int, wg *sync.WaitGroup) ConntrackUpdater {
+	return ConntrackUpdater{
+		nodeName:        nodeName,
+		conntrackScript: conntrackScript,
+		periodSeconds:   periodSeconds,
+		stopCh:          make(chan bool),
+		wg:              wg,
+	}
+}
+
+// StartConntrackUpdater start ConntrackUpdater
+func (c *ConntrackUpdater) StartConntrackUpdater() {
+	defer c.wg.Done()
+	glog.Info("starting ConntrackUpdater")
+	ticker := time.NewTicker(time.Duration(c.periodSeconds) * time.Second)
+	for {
+		select {
+		case <-ticker.C:
+			go func() {
+				if err := UpdateConntrackEntries(c.nodeName, c.conntrackScript); err != nil {
+					glog.Error(err.Error())
+				}
+			}()
+		case <-c.stopCh:
+			glog.Info("shutting down ConntrackUpdater")
+			ticker.Stop()
+			return
+		}
+	}
+}
+
+// StopConntrackUpdater stop ConntrackUpdater
+func (c *ConntrackUpdater) StopConntrackUpdater() {
+	close(c.stopCh)
+}
+
+// UpdateConntrackEntries build the conntrack counts cache from conntrack table
 func UpdateConntrackEntries(nodeName string, conntrackScript string) error {
 	defer func() {
 		if r := recover(); r != nil {
@@ -104,24 +134,28 @@ func UpdateConntrackEntries(nodeName string, conntrackScript string) error {
 		entries[i].Node = nodeName
 		// request source
 		reqSrc := GetHost(entries[i].Connection.ReqSrcIp)
+		entries[i].Connection.ReqSrcType = reqSrc.Type
 		entries[i].Connection.ReqSrcNs = reqSrc.Namespace
 		entries[i].Connection.ReqSrcApp = reqSrc.App
 		entries[i].Connection.ReqSrcName = reqSrc.Name
 
 		// request destination
 		reqDst := GetHost(entries[i].Connection.ReqDstIp)
+		entries[i].Connection.ReqDstType = reqDst.Type
 		entries[i].Connection.ReqDstNs = reqDst.Namespace
 		entries[i].Connection.ReqDstApp = reqDst.App
 		entries[i].Connection.ReqDstName = reqDst.Name
 
 		// response source
 		resSrc := GetHost(entries[i].Connection.ResSrcIp)
+		entries[i].Connection.ResSrcType = resSrc.Type
 		entries[i].Connection.ResSrcNs = resSrc.Namespace
 		entries[i].Connection.ResSrcApp = resSrc.App
 		entries[i].Connection.ResSrcName = resSrc.Name
 
 		// response destination
 		resDst := GetHost(entries[i].Connection.ResDstIp)
+		entries[i].Connection.ResDstType = resDst.Type
 		entries[i].Connection.ResDstNs = resDst.Namespace
 		entries[i].Connection.ResDstApp = resDst.App
 		entries[i].Connection.ResDstName = resDst.Name
@@ -140,7 +174,7 @@ func UpdateConntrackEntries(nodeName string, conntrackScript string) error {
 	return nil
 }
 
-// GetConnections return connections in prometheus format
+// GetConnections return conntrack counts in prometheus format
 func GetConnections(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	for _, entry := range currentConntrack {

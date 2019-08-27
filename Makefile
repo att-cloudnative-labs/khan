@@ -1,15 +1,14 @@
-VERSION=v1.0.0-BETA-1
+VERSION=v1.0.0
 
-GOCMD=go
-GOBUILD=$(GOCMD) build
-GOCLEAN=$(GOCMD) clean
-GOTEST=$(GOCMD) test
-GOGET=$(GOCMD) get
+.PHONY: registry agent test
 
 all: registry agent
 
-registry:
-	go build -o bin/registry cmd/registry/main.go
+registry: test
+	docker build -f build/registry/Dockerfile -t $(DOCKER_REGISTRY)/khan-system/khan-registry:$(VERSION) .
 
-agent:
-	go build -o bin/agent cmd/agent/main.go
+agent: test
+	docker build -f build/agent/Dockerfile -t $(DOCKER_REGISTRY)/khan-system/khan-agent:$(VERSION) .
+
+test:
+	go test -v ./...

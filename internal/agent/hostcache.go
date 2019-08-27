@@ -3,63 +3,73 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/att-cloudnative-labs/khan/pkg/hosts"
 	"github.com/golang/glog"
+	"net/http"
+	"sync"
+	"time"
 )
 
 var hostCache = make(map[string]hosts.Host)
 
-// Controller builds and serves host cache
-type Controller struct {
+// HostCacheUpdater builds and serves host cache
+type HostCacheUpdater struct {
 	NodeName     string
 	RegistryURL  string
 	UpdatePeriod int
+	stopCh       chan bool
+	wg           *sync.WaitGroup
 }
 
-// NewController create new Controller
-func NewController(nodeName string, registryURL string, updatePeriod int) Controller {
-	return Controller{
+// NewHostCacheUpdater create new HostCacheUpdater
+func NewHostCacheUpdater(nodeName string, registryURL string, updatePeriod int, wg *sync.WaitGroup) HostCacheUpdater {
+	return HostCacheUpdater{
 		NodeName:     nodeName,
 		RegistryURL:  registryURL,
 		UpdatePeriod: updatePeriod,
+		stopCh:       make(chan bool),
+		wg:           wg,
 	}
 }
 
-// Start Controller
-func (c *Controller) Start(stopCh chan struct{}) {
+// StartHostCacheUpdater HostCacheUpdater
+func (c *HostCacheUpdater) StartHostCacheUpdater() {
+	defer c.wg.Done()
+	glog.Info("starting HostCacheUpdater")
 	ticker := time.NewTicker(time.Duration(c.UpdatePeriod) * time.Second)
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				glog.Info("Retrieving host cache")
-				func() {
-					resp, err := http.Get(fmt.Sprintf("%s?node=%s", c.RegistryURL, c.NodeName))
-					if err != nil {
-						glog.Errorf("error retrieving host cache: %s", err.Error())
-						return
+	for {
+		select {
+		case <-ticker.C:
+			glog.Info("Retrieving host cache")
+			func() {
+				resp, err := http.Get(c.RegistryURL)
+				if err != nil {
+					glog.Errorf("error retrieving host cache: %s", err.Error())
+					return
+				}
+				defer func() {
+					if err := resp.Body.Close(); err != nil {
+						glog.Errorf("error closing response reader")
 					}
-					defer func() {
-						if err := resp.Body.Close(); err != nil {
-							glog.Errorf("error closing response reader")
-						}
-					}()
-					if err = json.NewDecoder(resp.Body).Decode(&hostCache); err != nil {
-						glog.Errorf("error decoding host cache: %s", err.Error())
-						return
-					}
-					glog.Info("Successfully retrieved host cache")
 				}()
+				if err = json.NewDecoder(resp.Body).Decode(&hostCache); err != nil {
+					glog.Errorf("error decoding host cache: %s", err.Error())
+					return
+				}
+				glog.Info("Successfully retrieved host cache")
+			}()
 
-			case <-stopCh:
-				ticker.Stop()
-				return
-			}
+		case <-c.stopCh:
+			glog.Info("shutting down HostCacheUpdater")
+			ticker.Stop()
+			return
 		}
-	}()
+	}
+}
+
+// StopHostCacheUpdater stopCh
+func (c *HostCacheUpdater) StopHostCacheUpdater() {
+	close(c.stopCh)
 }
 
 // SetCache sets the entire cache
