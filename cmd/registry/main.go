@@ -1,79 +1,45 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"flag"
+	"github.com/att-cloudnative-labs/khan/internal/registry"
+	"github.com/golang/glog"
+	"github.com/spf13/viper"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
-	"time"
-
-	"github.com/att-cloudnative-labs/khan/cmd/registry/config"
-	"github.com/att-cloudnative-labs/khan/cmd/registry/routes"
-	"github.com/att-cloudnative-labs/khan/internal/mappings"
-
-	"github.com/go-chi/chi"
-
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func main() {
-	config.Set()
-	port := config.Registry.GetString("SERVER_PORT")
-	apiserver := config.Registry.GetString("APISERVER")
-	kubeconfig := config.Registry.GetString("KUBECONFIG")
+	flag.Parse()
 
-	r := chi.NewRouter()
+	v := viper.New()
+	v.SetDefault("SERVER_ADDR", ":8080")
+	v.SetDefault("CACHE_SYNC_PERIOD", 30)
+	v.AutomaticEnv()
 
-	routes.Set(r)
+	addr := v.GetString("SERVER_ADDR")
+	apiserver := v.GetString("APISERVER")
+	kubeconfig := v.GetString("KUBECONFIG")
+	cacheSyncPeriod := v.GetInt("CACHE_SYNC_PERIOD")
 
-	// appmapping
-	cfg, err := clientcmd.BuildConfigFromFlags(apiserver, kubeconfig)
-	if err != nil {
-		panic(fmt.Errorf("error creating controller: %s", err.Error()))
-	}
-	stdClient, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		panic(fmt.Errorf("error creating controller: %s", err.Error()))
-	}
+	stopCh := make(chan os.Signal)
+	var wg sync.WaitGroup
+	signal.Notify(stopCh, syscall.SIGINT, syscall.SIGTERM)
 
-	stopCh := setupSignalHandler()
-	informerFactory := informers.NewSharedInformerFactory(stdClient, time.Second*30)
+	cacheBuilder := registry.NewCacheBuilder(apiserver, kubeconfig, cacheSyncPeriod, &wg)
+	server := registry.NewServer(addr, &wg)
 
-	controller, err := mappings.NewController(informerFactory.Core().V1().Pods())
-	if err != nil {
-		panic(fmt.Errorf("error creating controller: %s", err.Error()))
-	}
+	wg.Add(2)
+	go cacheBuilder.StartCacheBuilder()
+	go server.StartServer()
 
-	go informerFactory.Start(stopCh)
-	go controller.Start(stopCh)
+	<-stopCh
 
-	fmt.Printf("Starting application on port %s\n", port)
+	cacheBuilder.StopCacheBuilder()
+	server.StopServer()
 
-	err = http.ListenAndServe(port, r)
-
-	if err != nil {
-		panic(err)
-	}
-}
-
-var onlyOneSignalHandler = make(chan struct{})
-var shutdownHandler chan os.Signal
-
-func setupSignalHandler() <-chan struct{} {
-	close(onlyOneSignalHandler) // panics when called twice
-
-	shutdownHandler = make(chan os.Signal, 2)
-
-	stop := make(chan struct{})
-	signal.Notify(shutdownHandler, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-shutdownHandler
-		close(stop)
-		<-shutdownHandler
-		os.Exit(1) // second signal. Exit directly
-	}()
-	return stop
+	wg.Wait()
+	glog.Info("graceful shutdown")
 }

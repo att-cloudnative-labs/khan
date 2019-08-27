@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: khan-system
+  name: khan-agent
+spec:
+  selector:
+    matchLabels:
+      app: khan-agent
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: "/khan"
+        prometheus.io/port: "8080"
+        prometheus.io/scheme: "http"
+        prometheus.io/scrape: "true"
+      labels:
+        app: khan-agent
+    spec:
+      containers:
+      - name: agent
+        image: your-registry.com/khan-system/agent:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: SERVER_PORT
+          value: ":8080"
+        - name: REGISTRY_URL
+          value: "http://khan-registry/cache"
+        - name: CONNTRACK_SCRIPT
+          value: "/tmp/khan/conntrackScript.sh"
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: conntrack
+          mountPath: /tmp/conntrack
+        - name: khan-script
+          mountPath: /tmp/khan/conntrackScript.sh
+          subPath: conntrackScript.sh
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: "1"
+          requests:
+            memory: 256Mi
+            cpu: 500m
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      volumes:
+      - name: conntrack
+        hostPath:
+          path: /proc/net
+      - name: khan-script
+        configMap:
+          name: khan-script
+          defaultMode: 493
