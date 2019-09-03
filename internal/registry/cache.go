@@ -38,7 +38,11 @@ var hostCache = NewCache()
 func (p *AtomicHostCache) GetCache() hosts.HostCache {
 	p.RLock()
 	defer p.RUnlock()
-	return p.internal
+	mapCopy := make(map[string]hosts.Host)
+	for k, v := range p.internal {
+		mapCopy[k] = v
+	}
+	return mapCopy
 }
 
 // PutCache Add entry to Cache
@@ -130,15 +134,13 @@ func (r *CacheBuilder) BuildCache() error {
 		return fmt.Errorf("error listing pods: %s", err.Error())
 	}
 	for _, pod := range pods {
-
-		hostCache.internal[pod.Status.PodIP] = hosts.Host{
+		hostCache.PutCache(pod.Status.PodIP, hosts.Host{
 			Type:      "pod",
 			Namespace: pod.Namespace,
 			Name:      pod.Name,
 			App:       pod.GetLabels()["app"],
 			NodeIP:    pod.Status.HostIP,
-		}
-
+		})
 	}
 	services, err := r.serviceLister.Services(metav1.NamespaceAll).List(labels.Everything())
 	if err != nil {
@@ -146,12 +148,12 @@ func (r *CacheBuilder) BuildCache() error {
 	}
 	for _, service := range services {
 		if len(service.Spec.ClusterIP) > 0 && service.Spec.ClusterIP != "None" {
-			hostCache.internal[service.Spec.ClusterIP] = hosts.Host{
+			hostCache.PutCache(service.Spec.ClusterIP, hosts.Host{
 				Type:      "service",
 				Namespace: service.Namespace,
 				Name:      service.Name,
 				App:       service.GetLabels()["app"],
-			}
+			})
 		}
 	}
 	nodes, err := r.nodeLister.List(labels.Everything())
@@ -159,30 +161,33 @@ func (r *CacheBuilder) BuildCache() error {
 		return fmt.Errorf("error listig nodes: %s", err.Error())
 	}
 	for _, node := range nodes {
-		hostCache.internal[node.Status.Addresses[0].Address] = hosts.Host{
+		hostCache.PutCache(node.Status.Addresses[0].Address, hosts.Host{
 			Type:   "node",
 			Name:   node.Name,
 			NodeIP: node.Status.Addresses[0].Address,
-		}
+		})
 		podCIDR := node.Spec.PodCIDR
 		if len(podCIDR) > 0 {
 			ip, _, err := net.ParseCIDR(podCIDR)
 			if err != nil {
-				glog.Errorf("Error parsing PodCIDR: %s", err.Error())
+				return fmt.Errorf("error parsing PodCIDR: %s", err.Error())
+			}
+			if ip == nil {
+				return fmt.Errorf("error parsing PodCIDR: nil result")
 			}
 			ipString := ip.To4().String()
-			hostCache.internal[ipString] = hosts.Host{
+			hostCache.PutCache(ipString, hosts.Host{
 				Type:   "network",
 				Name:   node.Name,
 				NodeIP: node.Status.Addresses[0].Address,
-			}
+			})
 			cniIP := ip.To4()
 			cniIP[3]++
-			hostCache.internal[cniIP.String()] = hosts.Host{
+			hostCache.PutCache(cniIP.String(), hosts.Host{
 				Type:   "gateway",
 				Name:   node.Name,
 				NodeIP: node.Status.Addresses[0].Address,
-			}
+			})
 		}
 	}
 	glog.Infof("hosts cache build complete")
