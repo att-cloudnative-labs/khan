@@ -10,7 +10,18 @@ import (
 	"time"
 )
 
-var hostCache = make(map[string]hosts.Host)
+type HostCache struct {
+	sync.RWMutex
+	internal map[string]hosts.Host
+}
+
+func NewHostCache() *HostCache {
+	return &HostCache{
+		internal: make(map[string]hosts.Host),
+	}
+}
+
+var hostCache = NewHostCache()
 
 // HostCacheUpdater builds and serves host cache
 type HostCacheUpdater struct {
@@ -52,10 +63,14 @@ func (c *HostCacheUpdater) StartHostCacheUpdater() {
 						glog.Errorf("error closing response reader")
 					}
 				}()
-				if err = json.NewDecoder(resp.Body).Decode(&hostCache); err != nil {
+				var incomingHostCache map[string]hosts.Host
+				if err = json.NewDecoder(resp.Body).Decode(&incomingHostCache); err != nil {
 					glog.Errorf("error decoding host cache: %s", err.Error())
 					return
 				}
+				hostCache.Lock()
+				defer hostCache.Unlock()
+				hostCache.internal = incomingHostCache
 				glog.Info("Successfully retrieved host cache")
 			}()
 
@@ -79,18 +94,28 @@ func SetCache(_ http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&newCache); err != nil {
 		fmt.Println("Error processing cache update")
 	}
-	hostCache = newCache
+	hostCache.Lock()
+	defer hostCache.Unlock()
+	hostCache.internal = newCache
 	fmt.Println("cache was set :)")
 }
 
 // GetCache returns entire cache
 func GetCache(w http.ResponseWriter, _ *http.Request) {
-	if err := json.NewEncoder(w).Encode(hostCache); err != nil {
+	hostCache.RLock()
+	defer hostCache.RUnlock()
+	mapCopy := make(map[string]hosts.Host)
+	for k, v := range hostCache.internal {
+		mapCopy[k] = v
+	}
+	if err := json.NewEncoder(w).Encode(mapCopy); err != nil {
 		glog.Errorf("error serving host cache: %s", err.Error())
 	}
 }
 
 // Get returns Host for a given IP
 func GetHost(ip string) hosts.Host {
-	return hostCache[ip]
+	hostCache.RLock()
+	defer hostCache.RUnlock()
+	return hostCache.internal[ip]
 }
