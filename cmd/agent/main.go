@@ -19,14 +19,12 @@ func main() {
 	v.SetDefault("SERVER_ADDR", ":8080")
 	v.SetDefault("CONNTRACK_PERIOD", 30)
 	v.SetDefault("HOST_PERIOD", 30)
-	v.SetDefault("CONNTRACK_SCRIPT", "/tmp/script/conntrackScript.sh")
 	v.SetDefault("REGISTRY_URL", "http://registry/cache")
 	v.AutomaticEnv()
 
 	addr := v.GetString("SERVER_ADDR")
 	hostPeriod := v.GetInt("HOST_PERIOD")
 	conntrackPeriod := v.GetInt("CONNTRACK_PERIOD")
-	conntrackScript := v.GetString("CONNTRACK_SCRIPT")
 	registryURL := v.GetString("REGISTRY_URL")
 	nodeName := v.GetString("NODE_NAME")
 
@@ -35,7 +33,7 @@ func main() {
 	signal.Notify(stopCh, syscall.SIGINT, syscall.SIGTERM)
 
 	hostCacheUpdater := agent.NewHostCacheUpdater(nodeName, registryURL, hostPeriod, &wg)
-	conntrackUpdater := agent.NewConntrackUpdater(nodeName, conntrackScript, conntrackPeriod, &wg)
+	conntrackUpdater := agent.NewConntrackUpdater(nodeName, conntrackPeriod, &wg)
 	server := agent.NewServer(addr, &wg)
 
 	wg.Add(3)
