@@ -1,4 +1,4 @@
-VERSION=v1.0.0
+VERSION=v1.1.1
 
 .PHONY: registry agent test
 

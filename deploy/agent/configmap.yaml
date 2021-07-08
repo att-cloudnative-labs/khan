@@ -1,9 +1,0 @@
-apiVersion: v1
-data:
-  conntrackScript.sh: |
-    #! /bin/sh
-    (printf "["; cat /tmp/conntrack/nf_conntrack | tr -s ' ' | grep 10.240 | /bin/sed -E 's/ipv4 2 tcp 6 [0-9]+ ([A-Z_]+) src=([0-9]+.[0-9]+.[0-9]+.[0-9]+) dst=([0-9]+.[0-9]+.[0-9]+.[0-9]+) sport=[0-9]+ dport=([0-9]+) ([[A-Z]+] )?src=[0-9]+.[0-9]+.[0-9]+.[0-9]+ dst=[0-9]+.[0-9]+.[0-9]+.[0-9]+ sport=[0-9]+ dport=[0-9]+ (\[[A-Z]+\])?.*/\{\"transport\":\"tcp\",\"req_src_ip\":\"\2\",\"req_dst_ip\":\"\3\",\"req_dport\":\"\4\",\"state\":\"\1\",\"rep_state\":\"\5\"}/g' | /bin/sed -E 's/ipv4 2 udp 17 [0-9]+ src=([0-9]+.[0-9]+.[0-9]+.[0-9]+) dst=([0-9]+.[0-9]+.[0-9]+.[0-9]+) sport=[0-9]+ dport=([0-9]+) ([[A-Z]+] )?src=[0-9]+.[0-9]+.[0-9]+.[0-9]+ dst=[0-9]+.[0-9]+.[0-9]+.[0-9]+ sport=[0-9]+ dport=[0-9]+.*/\{\"transport\":\"udp\",\"req_src_ip\":\"\1\",\"req_dst_ip\":\"\2\",\"req_dport\":\"\3\",\"rep_state\":\"\4\"}/g' | sort | uniq -c | sort -n | tr -s ' ' | /bin/sed -E 's/ ([0-9]+) (.*)/\{\"count":\"\1\",\"connection\":\2},/g'; printf "{}]")
-kind: ConfigMap
-metadata:
-  name: khan-script
-  namespace: khan-system
