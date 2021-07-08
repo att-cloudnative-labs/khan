@@ -107,6 +107,10 @@ func UpdateConntrackEntries(nodeName string) error {
 
 	var currentConntrackEntryMap = make(map[ConntrackCount]*ConntrackCount)
 	for _, con := range cons {
+		if *con.Origin.Proto.Number != 6 && *con.Origin.Proto.Number != 17 {
+			// skipping non-tcp/udp protocols as some such as IP-encapsulation (4) doesn't fit format below and would cause NPE
+			continue
+		}
 		var state, transport string
 
 		if *con.Origin.Proto.Number == TcpProtoNum {

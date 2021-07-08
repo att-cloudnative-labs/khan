@@ -15,7 +15,7 @@ spec:
       serviceAccount: khan-registry
       containers:
       - name: controller
-        image: your-registry.com/khan-system/khan-registry:v1.1.0
+        image: your-registry.com/khan-system/khan-registry:v1.1.1
         imagePullPolicy: IfNotPresent
         resources:
           limits:

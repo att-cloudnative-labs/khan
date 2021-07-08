@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: agent
-        image: your-registry.com/khan-system/khan-agent:v1.1.0
+        image: your-registry.com/khan-system/khan-agent:v1.1.1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
